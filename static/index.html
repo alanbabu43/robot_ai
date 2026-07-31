@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarvam AI Multilingual Voice Chatbot</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Background glowing gradients -->
+    <div class="glow-bg">
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-blue"></div>
+        <div class="blob blob-cyan"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Settings -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                    <h2>Sarvam Voice</h2>
+                </div>
+                <p class="subtitle">Multilingual Conversational Agent</p>
+            </div>
+
+            <div class="settings-group">
+                <h3><i class="fa-solid fa-key"></i> Authentication</h3>
+                <div class="input-wrapper">
+                    <input type="password" id="apiKey" placeholder="Enter Sarvam API Key..." autocomplete="off">
+                    <button id="toggleApiKey" title="Show/Hide API Key">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+                <p class="help-text">Leaves empty to fall back to server's .env file</p>
+            </div>
+
+            <div class="settings-group">
+                <h3><i class="fa-solid fa-microphone-lines"></i> Configuration</h3>
+                
+                <label for="chatModel">LLM Model</label>
+                <select id="chatModel">
+                    <option value="sarvam-30b" selected>Sarvam 30B (Optimized MoE)</option>
+                    <option value="sarvam-105b">Sarvam 105B (Flagship MoE)</option>
+                </select>
+
+                <div class="toggle-wrapper">
+                    <div class="toggle-label-container">
+                        <label for="enableGrounding">Search Grounding</label>
+                        <span class="toggle-desc">Retrieve latest context (RAG)</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="enableGrounding" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <label for="ttsVoice">TTS Speaker Voice</label>
+                <select id="ttsVoice">
+                    <optgroup label="Female Voices">
+                        <option value="ritu" selected>Ritu (Recommended)</option>
+                        <option value="priya">Priya</option>
+                        <option value="neha">Neha</option>
+                        <option value="pooja">Pooja</option>
+                        <option value="shreya">Shreya</option>
+                        <option value="kavya">Kavya</option>
+                        <option value="simran">Simran</option>
+                        <option value="ishita">Ishita</option>
+                        <option value="roopa">Roopa</option>
+                        <option value="suhani">Suhani</option>
+                        <option value="niharika">Niharika</option>
+                        <option value="rupali">Rupali</option>
+                        <option value="shruti">Shruti</option>
+                        <option value="tanya">Tanya</option>
+                        <option value="kavitha">Kavitha</option>
+                    </optgroup>
+                    <optgroup label="Male Voices">
+                        <option value="shubh">Shubh</option>
+                        <option value="aditya">Aditya</option>
+                        <option value="rahul">Rahul</option>
+                        <option value="dev">Dev</option>
+                        <option value="rohan">Rohan</option>
+                        <option value="ashutosh">Ashutosh</option>
+                        <option value="amit">Amit</option>
+                        <option value="ratan">Ratan</option>
+                        <option value="varun">Varun</option>
+                        <option value="manan">Manan</option>
+                        <option value="sumit">Sumit</option>
+                        <option value="kabir">Kabir</option>
+                        <option value="aayan">Aayan</option>
+                        <option value="advait">Advait</option>
+                        <option value="anand">Anand</option>
+                        <option value="tarun">Tarun</option>
+                        <option value="sunny">Sunny</option>
+                        <option value="mani">Mani</option>
+                        <option value="gokul">Gokul</option>
+                        <option value="vijay">Vijay</option>
+                        <option value="mohit">Mohit</option>
+                        <option value="rehan">Rehan</option>
+                        <option value="soham">Soham</option>
+                        <option value="niharika">Niharika</option>
+                    </optgroup>
+                </select>
+
+                <label for="ttsLanguage">TTS Language</label>
+                <select id="ttsLanguage">
+                    <option value="en-IN" selected>English (en-IN)</option>
+                    <option value="hi-IN">Hindi (hi-IN)</option>
+                    <option value="ml-IN">Malayalam (ml-IN)</option>
+                    <option value="ta-IN">Tamil (ta-IN)</option>
+                    <option value="te-IN">Telugu (te-IN)</option>
+                    <option value="kn-IN">Kannada (kn-IN)</option>
+                    <option value="mr-IN">Marathi (mr-IN)</option>
+                    <option value="gu-IN">Gujarati (gu-IN)</option>
+                    <option value="bn-IN">Bengali (bn-IN)</option>
+                    <option value="pa-IN">Punjabi (pa-IN)</option>
+                    <option value="or-IN">Odia (or-IN)</option>
+                </select>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="language-pill-container">
+                    <span class="pill" title="Hindi">हिन्दी</span>
+                    <span class="pill" title="English">English</span>
+                    <span class="pill" title="Malayalam">മലയാളം</span>
+                    <span class="pill" title="Tamil">தமிழ்</span>
+                    <span class="pill" title="Telugu">తెలుగు</span>
+                    <span class="pill" title="Bengali">বাংলা</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="dot green"></span>
+                    <span class="status-label">Sarvam API Connected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="main-content">
+            <header class="top-nav glass">
+                <div class="header-info">
+                    <h1>Conversational Chatbot</h1>
+                    <p>Speak or type in any language, get text & speech result in the same language</p>
+                </div>
+                <button id="clearChat" class="btn btn-secondary" title="Clear Chat History">
+                    <i class="fa-solid fa-trash-can"></i> Clear Chat
+                </button>
+            </header>
+
+            <!-- Chat Message History -->
+            <section class="chat-history" id="chatHistory">
+                <!-- Welcome greeting -->
+                <div class="welcome-box glass">
+                    <div class="welcome-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h2>Welcome to Sarvam Voice & Text Assistant!</h2>
+                    <p>This assistant utilizes **Sarvam AI's** suite of model capabilities for speech-to-text, LLM chat, and expressive text-to-speech (TTS):</p>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> **Speech-to-Text & Text Input**: Record your voice or type text prompts in any language.</li>
+                        <li><i class="fa-solid fa-check"></i> **Multilingual LLM Response**: Generates up-to-date responses (RAG search grounding).</li>
+                        <li><i class="fa-solid fa-check"></i> **Text-to-Speech (TTS) Synthesis**: Speaks the result back aloud in natural Indian voices.</li>
+                        <li><i class="fa-solid fa-check"></i> **Read Aloud Button**: Convert any typed text or result bubble to speech on demand!</li>
+                    </ul>
+                    <p class="prompt-hint">Click the microphone button to record, or type a text message below and click <strong>Send</strong> or <strong>Speak TTS</strong>!</p>
+                </div>
+            </section>
+
+            <!-- Interaction Panel -->
+            <footer class="interaction-panel glass">
+                <!-- Visualizer & Status -->
+                <div class="visualizer-container">
+                    <canvas id="visualizerCanvas"></canvas>
+                    <div class="status-overlay">
+                        <span id="interactionStatus">Ready to talk</span>
+                    </div>
+                </div>
+
+                <!-- Text & Record Controls -->
+                <div class="controls-wrapper">
+                    <div class="text-input-container">
+                        <input type="text" id="textInput" placeholder="Type a message or text to convert to speech..." autocomplete="off" />
+                        <button id="sendTextBtn" class="btn btn-primary-gradient" title="Send Message & Get TTS Result">
+                            <i class="fa-solid fa-paper-plane"></i> Send
+                        </button>
+                        <button id="speakTextBtn" class="btn btn-secondary-gradient" title="Convert Typed Text Directly to Speech (TTS)">
+                            <i class="fa-solid fa-volume-high"></i> Speak TTS
+                        </button>
+                    </div>
+
+                    <div class="voice-divider">
+                        <span>or use voice input</span>
+                    </div>
+
+                    <div class="record-controls-row">
+                        <button id="recordButton" class="record-btn" title="Click to Record Voice">
+                            <span class="pulse-ring"></span>
+                            <span class="pulse-ring-outer"></span>
+                            <i class="fa-solid fa-microphone mic-icon"></i>
+                            <i class="fa-solid fa-square stop-icon"></i>
+                        </button>
+                    </div>
+                    <p class="keyboard-hint">Type & press Enter to send with TTS • Click mic to record voice</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Hidden audio element for speech playback -->
+    <audio id="ttsAudio" style="display: none;"></audio>
+
+    <!-- Custom Script -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
