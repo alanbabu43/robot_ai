@@ -30,6 +30,25 @@ const textInput = document.getElementById('textInput');
 const sendTextBtn = document.getElementById('sendTextBtn');
 const speakTextBtn = document.getElementById('speakTextBtn');
 
+// Mobile Sidebar Drawer Controls
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+function openSidebar() {
+    if (sidebar) sidebar.classList.add('active');
+    if (sidebarOverlay) sidebarOverlay.classList.add('active');
+}
+
+function closeSidebar() {
+    if (sidebar) sidebar.classList.remove('active');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+}
+
+if (sidebarToggle) sidebarToggle.addEventListener('click', openSidebar);
+if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
 // Setup Visualizer Canvas
 const canvasCtx = visualizerCanvas.getContext('2d');
@@ -37,10 +56,13 @@ let animId = null;
 
 // Initialize layout size
 function resizeCanvas() {
-    visualizerCanvas.width = visualizerCanvas.parentElement.clientWidth;
-    visualizerCanvas.height = visualizerCanvas.parentElement.clientHeight;
+    if (visualizerCanvas && visualizerCanvas.parentElement) {
+        visualizerCanvas.width = visualizerCanvas.parentElement.clientWidth;
+        visualizerCanvas.height = visualizerCanvas.parentElement.clientHeight;
+    }
 }
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
 resizeCanvas();
 
 // Toggle API Key visibility (if present)
