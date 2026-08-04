@@ -32,23 +32,13 @@
                 <p class="subtitle">Multilingual Conversational Agent</p>
             </div>
 
-            <div class="settings-group">
-                <h3><i class="fa-solid fa-key"></i> Authentication</h3>
-                <div class="input-wrapper">
-                    <input type="password" id="apiKey" placeholder="Enter Sarvam API Key..." autocomplete="off">
-                    <button id="toggleApiKey" title="Show/Hide API Key">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
-                </div>
-                <p class="help-text">Leaves empty to fall back to server's .env file</p>
-            </div>
 
             <div class="settings-group">
                 <h3><i class="fa-solid fa-microphone-lines"></i> Configuration</h3>
                 
                 <label for="chatModel">LLM Model</label>
                 <select id="chatModel">
-                    <option value="sarvam-30b" selected>Sarvam 30B (Optimized MoE)</option>
+                    <!-- <option value="sarvam-30b" selected>Sarvam 30B (Optimized MoE)</option> -->
                     <option value="sarvam-105b">Sarvam 105B (Flagship MoE)</option>
                 </select>
 

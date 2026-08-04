@@ -43,13 +43,15 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Toggle API Key visibility
-toggleApiKeyBtn.addEventListener('click', () => {
-    const type = apiKeyInput.type === 'password' ? 'text' : 'password';
-    apiKeyInput.type = type;
-    const icon = toggleApiKeyBtn.querySelector('i');
-    icon.className = type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
-});
+// Toggle API Key visibility (if present)
+if (toggleApiKeyBtn && apiKeyInput) {
+    toggleApiKeyBtn.addEventListener('click', () => {
+        const type = apiKeyInput.type === 'password' ? 'text' : 'password';
+        apiKeyInput.type = type;
+        const icon = toggleApiKeyBtn.querySelector('i');
+        icon.className = type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+    });
+}
 
 // Clear Chat history
 clearChatBtn.addEventListener('click', () => {
@@ -453,10 +455,12 @@ async function sendAudioToBackend() {
             formData.append('history', JSON.stringify(conversationHistory));
         }
         
-        // Pass API key if provided
-        const key = apiKeyInput.value.strip ? apiKeyInput.value.strip() : apiKeyInput.value;
-        if (key) {
-            formData.append('api_key', key);
+        // Pass API key if provided via UI
+        if (apiKeyInput && apiKeyInput.value) {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                formData.append('api_key', key);
+            }
         }
         
         const response = await fetch('/api/chat-audio', {
@@ -547,7 +551,7 @@ async function sendTextToBackend() {
             message: text,
             voice: ttsVoiceSelect ? ttsVoiceSelect.value : 'ritu',
             model: chatModelSelect ? chatModelSelect.value : 'sarvam-30b',
-            api_key: apiKeyInput.value.trim() || null,
+            api_key: (apiKeyInput && apiKeyInput.value) ? apiKeyInput.value.trim() : null,
             grounding: enableGroundingCheckbox ? enableGroundingCheckbox.checked : true,
             history: conversationHistory.length > 0 ? JSON.stringify(conversationHistory) : null,
             language_code: ttsLanguageSelect ? ttsLanguageSelect.value : 'en-IN'
@@ -623,7 +627,7 @@ async function speakTextDirectly(textToSynthesize = null, targetLang = null) {
             text: text,
             voice: ttsVoiceSelect ? ttsVoiceSelect.value : 'ritu',
             language_code: targetLang || (ttsLanguageSelect ? ttsLanguageSelect.value : 'en-IN'),
-            api_key: apiKeyInput.value.trim() || null
+            api_key: (apiKeyInput && apiKeyInput.value) ? apiKeyInput.value.trim() : null
         };
         
         const response = await fetch('/api/text-to-speech', {
