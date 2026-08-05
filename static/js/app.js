@@ -4,6 +4,7 @@ let mediaRecorder = null;
 let audioChunks = [];
 let audioStream = null;
 let conversationHistory = [];
+let activeFetchController = null;
 
 // Audio context & analysis for visualizer
 let audioCtx = null;
@@ -75,8 +76,34 @@ if (toggleApiKeyBtn && apiKeyInput) {
     });
 }
 
+// Helper: Create a new AbortController signal for fetch calls
+function getNewFetchSignal() {
+    if (activeFetchController) {
+        activeFetchController.abort();
+    }
+    activeFetchController = new AbortController();
+    return activeFetchController.signal;
+}
+
 // Clear Chat history
 clearChatBtn.addEventListener('click', () => {
+    // 1. Abort any in-flight backend requests
+    if (activeFetchController) {
+        activeFetchController.abort();
+        activeFetchController = null;
+    }
+
+    // 2. Stop audio playback immediately
+    if (ttsAudio) {
+        ttsAudio.pause();
+        ttsAudio.currentTime = 0;
+    }
+
+    // 3. Cancel active recording if recording
+    if (isRecording) {
+        cancelRecording();
+    }
+
     conversationHistory = [];
     // Keep only welcome box or clear all
     chatHistory.innerHTML = `
@@ -348,6 +375,26 @@ function stopRecording() {
     updateStatus("Transcribing...");
 }
 
+function cancelRecording() {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+    
+    mediaRecorder.onstop = null; // Do not send audio to backend
+    mediaRecorder.stop();
+    
+    if (micSource) {
+        micSource.disconnect();
+        micSource = null;
+    }
+    
+    if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+    }
+    
+    isRecording = false;
+    if (recordButton) recordButton.classList.remove('recording');
+}
+
 // Append messages to conversation UI
 function appendMessage(role, text, langCode = null, audioBase64 = null) {
     // Remove welcome box if present
@@ -462,6 +509,7 @@ ttsAudio.addEventListener('ended', () => {
 
 // Call fastapi endpoints
 async function sendAudioToBackend() {
+    const signal = getNewFetchSignal();
     updateStatus("Thinking...");
     const typingIndicator = appendTypingIndicator();
     
@@ -487,11 +535,14 @@ async function sendAudioToBackend() {
         
         const response = await fetch('/api/chat-audio', {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: signal
         });
         
         // Remove loading dots
         typingIndicator.remove();
+        
+        if (signal.aborted) return;
         
         if (!response.ok) {
             const errResult = await response.json();
@@ -499,6 +550,8 @@ async function sendAudioToBackend() {
         }
         
         const result = await response.json();
+        
+        if (signal.aborted) return;
         
         // Save turn into conversation history
         if (result.user_transcript) {
@@ -525,8 +578,12 @@ async function sendAudioToBackend() {
         }
         
     } catch (err) {
-        console.error("Chat Error:", err);
         typingIndicator.remove();
+        if (err.name === 'AbortError' || signal.aborted) {
+            console.log("Audio chat request aborted.");
+            return;
+        }
+        console.error("Chat Error:", err);
         
         // Render system error message
         const errWrapper = document.createElement('div');
@@ -568,6 +625,8 @@ async function sendTextToBackend() {
     updateStatus("Thinking...");
     const typingIndicator = appendTypingIndicator();
     
+    const signal = getNewFetchSignal();
+    
     try {
         const payload = {
             message: text,
@@ -582,10 +641,13 @@ async function sendTextToBackend() {
         const response = await fetch('/api/chat-text', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: signal
         });
         
         typingIndicator.remove();
+        
+        if (signal.aborted) return;
         
         if (!response.ok) {
             const errResult = await response.json();
@@ -593,6 +655,8 @@ async function sendTextToBackend() {
         }
         
         const result = await response.json();
+        
+        if (signal.aborted) return;
         
         if (result.bot_response) {
             conversationHistory.push({ role: 'assistant', content: result.bot_response });
@@ -607,8 +671,12 @@ async function sendTextToBackend() {
         }
         
     } catch (err) {
-        console.error("Text Chat Error:", err);
         typingIndicator.remove();
+        if (err.name === 'AbortError' || signal.aborted) {
+            console.log("Text chat request aborted.");
+            return;
+        }
+        console.error("Text Chat Error:", err);
         
         const errWrapper = document.createElement('div');
         errWrapper.className = 'message-wrapper bot';
@@ -644,6 +712,8 @@ async function speakTextDirectly(textToSynthesize = null, targetLang = null) {
     
     updateStatus("Synthesizing TTS...");
     
+    const signal = getNewFetchSignal();
+    
     try {
         const payload = {
             text: text,
@@ -655,8 +725,11 @@ async function speakTextDirectly(textToSynthesize = null, targetLang = null) {
         const response = await fetch('/api/text-to-speech', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: signal
         });
+        
+        if (signal.aborted) return;
         
         if (!response.ok) {
             const errResult = await response.json();
@@ -665,6 +738,8 @@ async function speakTextDirectly(textToSynthesize = null, targetLang = null) {
         
         const result = await response.json();
         
+        if (signal.aborted) return;
+        
         if (result.audio_base64) {
             playTtsAudio(result.audio_base64);
         } else {
@@ -672,6 +747,10 @@ async function speakTextDirectly(textToSynthesize = null, targetLang = null) {
             alert("No audio returned from Text-to-Speech API.");
         }
     } catch (err) {
+        if (err.name === 'AbortError' || signal.aborted) {
+            console.log("Direct TTS request aborted.");
+            return;
+        }
         console.error("Direct TTS Error:", err);
         updateStatus("Ready to talk");
         alert(`Text-to-Speech failed: ${err.message}`);
